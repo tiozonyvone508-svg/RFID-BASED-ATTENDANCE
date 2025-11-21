@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #4b0082, #8a2be2);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .header-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            width: 360px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            font-size: 22px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            margin: 25px 0;
+        }
+
+        .input-group input {
+            width: 300px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .input-group input.error {
+            border: 2px solid #ff4c4c;
+        }
+
+        .input-group label {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            color: #ccc;
+            font-size: 15px;
+            pointer-events: none;
+            transition: 0.2s ease all;
+        }
+
+        .input-group input:focus + label,
+        .input-group input:not(:placeholder-shown) + label {
+            top: -8px;
+            left: 10px;
+            font-size: 13px;
+            background: rgba(75, 0, 130, 0.8);
+            padding: 0 5px;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(to right, #a64dfc, #5d0cff);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #5d0cff, #a64dfc);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .popup-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 30px;
+            width: 360px;
+            max-width: 90%;
+            margin: 15% auto;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+
+        .popup-content h3 {
+            margin-top: 0;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .popup-content p {
+            font-size: 16px;
+            white-space: pre-line;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+    </style>
+</head>
+<body>
+    <div class="header-title">
+        RFID-BASED ITSO ATTENDANCE
+    </div>
+
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form onsubmit="return loginUser(event)" autocomplete="off" novalidate>
+            <div class="input-group">
+                <input type="text" id="username" placeholder=" ">
+                <label for="username">Enter your ITSO position/member username</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" placeholder=" ">
+                <label for="password">Enter your password</label>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span id="closePopup" class="close">&times;</span>
+            <h3 id="popupTitle">Title</h3>
+            <p id="popupMessage">Message goes here</p>
+        </div>
+    </div>
+
+    <script>
+        // Keep this function in case you want to use it later
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById("password");
+            const showPasswordCheckbox = document.getElementById("showPassword");
+            passwordField.type = showPasswordCheckbox.checked ? "text" : "password";
+        }
+
+        const popup = document.getElementById('popup');
+        const closeBtn = document.getElementById('closePopup');
+
+        function showPopup(title, message) {
+            document.getElementById('popupTitle').textContent = title;
+            document.getElementById('popupMessage').textContent = message;
+            popup.style.display = 'block';
+        }
+
+        closeBtn.onclick = () => { popup.style.display = 'none'; };
+        window.onclick = (event) => { if (event.target === popup) popup.style.display = 'none'; };
+
+        function loginUser(event) {
+            event.preventDefault(); 
+
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            usernameInput.classList.remove("error");
+            passwordInput.classList.remove("error");
+
+            if (!username) {
+                usernameInput.classList.add("error");
+                showPopup("⚠ Please fill out this field", "Username cannot be empty.");
+                return false;
+            }
+            if (!password) {
+                passwordInput.classList.add("error");
+                showPopup("⚠ Please fill out this field", "Password cannot be empty.");
+                return false;
+            }
+
+            if (username === "admin" && password === "1234") {
+                window.location.href = "dashboard.html";
+            } else {
+                showPopup("⚠ Invalid Login", "Invalid username or password.");
+            }
+
+            return false;
+        }
+
+        document.querySelectorAll(".input-group input").forEach((input, index, inputs) => {
+            input.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus(); 
+                    } else {
+                        document.querySelector("form").requestSubmit(); 
+                    }
+                }
+            });
+
+            input.addEventListener("input", () => {
+                if (input.value.trim() !== "") {
+                    input.classList.remove("error");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

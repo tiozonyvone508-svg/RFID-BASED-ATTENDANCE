@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Registration</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    form input, form select, form button {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    form select {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: #000;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 6px;
+      padding: 12px 15px;
+      font-size: 16px;
+    }
+
+    form button {
+      background-color: #5d0cff;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    form button:hover {
+      background-color: #a64dfc;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px 15px;
+        padding: 15px;
+      }
+      form input, form select, form button {
+        font-size: 14px;
+        padding: 10px 12px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .popup-content {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        padding: 30px;
+        width: 360px;
+        max-width: 90%;
+        margin: 15% auto;
+        text-align: center;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        animation: fadeIn 0.3s ease;
+        position: relative;
+        white-space: pre-line;
+    }
+
+    .popup-content h3 {
+        margin-top: 0;
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .popup-content p {
+        font-size: 16px;
+        white-space: pre-line;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(-20px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+
+    .error {
+      border: 2px solid red !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Register Student</h2>
+    <form id="registerForm" novalidate>
+
+      <input type="text" placeholder="RFID Code" name="rfid_code" required pattern="[0-9]+">
+
+      <input type="text" id="student_id" placeholder="Student No (e.g. 24-0007)" name="student_no" required>
+
+      <input type="text" placeholder="Last Name" name="last_name" required>
+
+      <input type="text" placeholder="Given Name" name="given_name" required>
+
+      <input type="text" placeholder="Middle Initial" name="middle_initial" maxlength="1" pattern="[A-Za-z]{1}" required>
+
+      <select name="sex" required>
+        <option value="" disabled selected>Select Sex</option>
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+
+      <div style="display:flex; gap:10px; margin-bottom: 20px;">
+        <select name="year" required style="flex:1;">
+          <option value="" disabled selected>Year</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+
+        <select name="section" required style="flex:1;">
+          <option value="" disabled selected>Section</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <div id="popup" class="popup">
+      <div class="popup-content">
+          <span id="closePopup" class="close">&times;</span>
+          <h3 id="popupTitle">Title</h3>
+          <p id="popupMessage">Message goes here</p>
+      </div>
+  </div>
+
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ4mFth7Z4vBYfSBvDD5c1jLjTkpqQWVQ",
+  authDomain: "rfid-register-47201.firebaseapp.com",
+  projectId: "rfid-register-47201",
+  storageBucket: "rfid-register-47201.firebasestorage.app",
+  messagingSenderId: "436530146046",
+  appId: "1:436530146046:web:e16fe037b82d1195c553af",
+  measurementId: "G-X5ZJFYJQBW"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const form = document.getElementById("registerForm");
+
+// Popup function
+function showPopup(title, message) {
+    document.getElementById('popupTitle').textContent = title;
+    document.getElementById('popupMessage').textContent = message;
+    document.getElementById('popup').style.display = 'block';
+
+    document.getElementById('closePopup').onclick = () =>
+        document.getElementById('popup').style.display = 'none';
+
+    window.onclick = (event) => {
+        if (event.target == document.getElementById('popup')) {
+            document.getElementById('popup').style.display = 'none';
+        }
+    };
+}
+
+// Auto capitalize names
+function capitalizeFirstLetter(input) {
+  input.value = input.value.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+[form.last_name, form.given_name, form.middle_initial].forEach(input =>
+  input.addEventListener('blur', () => capitalizeFirstLetter(input))
+);
+
+// Format student ID
+const studentIdInput = document.getElementById('student_id');
+studentIdInput.addEventListener('blur', function() {
+  let digits = this.value.replace(/\D/g, '');
+  if (digits.length < 6) digits = digits.padStart(6,'0');
+  if (digits.length > 6) digits = digits.slice(0,6);
+  this.value = digits.slice(0,2)+'-'+digits.slice(2,6);
+});
+
+studentIdInput.addEventListener('input', function() {
+  if (this.value.length > 7) this.value = this.value.slice(0,7);
+});
+
+// ✅ Real-time validation on Enter or blur
+const requiredFields = Array.from(form.elements).filter(el => el.hasAttribute("required"));
+
+requiredFields.forEach(field => {
+  // On pressing Enter
+  field.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!field.value.trim()) {
+        field.classList.add("error");
+        showPopup(
+          "⚠ Warning",
+          `You have to fill out the ${field.placeholder || field.name}!`
+        );
+        field.focus();
+      } else {
+        field.classList.remove("error");
+        // Move to next field
+        const index = requiredFields.indexOf(field);
+        if (index < requiredFields.length - 1) {
+          requiredFields[index + 1].focus();
+        }
+      }
+    }
+  });
+
+  // On leaving the field (blur)
+  field.addEventListener("blur", () => {
+    if (!field.value.trim()) {
+      field.classList.add("error");
+      showPopup(
+        "⚠ Warning",
+        `You have to fill out the ${field.placeholder || field.name}!`
+      );
+      field.focus();
+    } else {
+      field.classList.remove("error");
+    }
+  });
+});
+
+// Submit
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  for (let element of form.elements) {
+    if (element.hasAttribute("required") && !element.value.trim()) {
+      element.classList.add("error");
+      showPopup(
+        "⚠ Warning",
+        `You have to fill out the ${element.placeholder || element.name}!`
+      );
+      element.focus();
+      return;
+    } else {
+      element.classList.remove("error");
+    }
+  }
+
+  const rfidCode = form.rfid_code.value.trim();
+
+  try {
+    const codeQuery = query(collection(db, "students"), where("rfid_code", "==", rfidCode));
+    const querySnapshot = await getDocs(codeQuery);
+
+    if (!querySnapshot.empty) {
+      showPopup("⚠ Warning", "This RFID Code is already registered!");
+      return;
+    }
+
+    const data = {
+      rfid_code: rfidCode,
+      student_no: form.student_no.value.trim(),
+      last_name: form.last_name.value.trim(),
+      given_name: form.given_name.value.trim(),
+      middle_initial: form.middle_initial.value.trim().toUpperCase(),
+      sex: form.sex.value,
+      year_section: form.year.value.trim() + '-' + form.section.value.trim().toUpperCase(),
+      timestamp: serverTimestamp()
+    };
+
+    await addDoc(collection(db, "students"), data);
+
+    showPopup(
+      "✅ Student Registered",
+      `RFID Code: ${data.rfid_code}
+Student No: ${data.student_no}
+Full Name: ${data.last_name}, ${data.given_name} ${data.middle_initial}
+Sex: ${data.sex}
+Year & Section: ${data.year_section}`
+    );
+
+    form.reset();
+
+  } catch (error) {
+    console.error(error);
+    showPopup("⚠ Error", "Error saving to Firestore: " + error.message);
+  }
+});
+
+  </script>
+</body>
+</html>

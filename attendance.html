@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Attendance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Scan RFID to Log Attendance</h2>
+
+    <select id="logType">
+        <option value="login">Log In</option>
+        <option value="logout">Log Out</option>
+    </select>
+
+    <!-- Button to trigger scan -->
+    <button id="scanBtn">Scan RFID</button>
+
+    <!-- Hidden input to receive RFID value -->
+    <input type="text" id="rfidScan" placeholder="Scan RFID" style="opacity:0; height:1px; position:absolute;" autofocus>
+</div>
+
+<script>
+const eventName = "ITSO Day";
+const scanInput = document.getElementById("rfidScan");
+const scanBtn = document.getElementById("scanBtn");
+
+scanBtn.addEventListener("click", function () {
+    scanInput.focus();
+});
+
+scanInput.addEventListener("change", function () {
+    const rfidValue = this.value;
+    const logType = document.getElementById("logType").value;
+
+    fetch("log_attendance.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            rfid_no: rfidValue,
+            event_name: eventName,
+            log_type: logType
+        })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || data.error));
+
+    this.value = "";
+});
+</script>
+</body>
+</html>
